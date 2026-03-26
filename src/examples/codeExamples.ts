@@ -1,4 +1,22 @@
 export const CODE_EXAMPLES = {
+  'sum-loop': {
+    javascript: `// Simple sum loop – perfect for step-through
+let n = 5;
+let total = 0;
+
+for (let i = 1; i <= n; i++) {
+  total = total + i;
+}
+
+console.log("Sum:", total);`,
+    python: `n = 5
+total = 0
+for i in range(1, n + 1):
+    total = total + i
+print("Sum:", total)`,
+    java: `// Java not supported for browser execution`,
+    c: `// C not supported for browser execution`,
+  },
   'bubble-sort': {
     python: `def bubble_sort(arr):
     n = len(arr)

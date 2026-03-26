@@ -7,7 +7,7 @@ export default function ControlPanel() {
     <div className="flex justify-between items-center bg-white/5 backdrop-blur-md border border-white/10 rounded-xl p-4 shadow-lg">
       <div className="flex gap-3">
         <button onClick={restart} className="w-10 h-10 flex items-center justify-center bg-gray-900 border border-amber-500/30 text-amber-400 rounded-lg">⏮</button>
-        <button onClick={previousStep} className="w-10 h-10 flex items-center justify-center bg-gray-900 border border-blue-500/30 text-blue-400 rounded-lg">⏭</button>
+        <button onClick={previousStep} className="w-10 h-10 flex items-center justify-center bg-gray-900 border border-blue-500/30 text-blue-400 rounded-lg">⏮</button>
         <button onClick={togglePlay} className="w-10 h-10 flex items-center justify-center bg-gradient-to-r from-cyan-500 to-green-500 text-black rounded-lg font-bold">{isPlaying ? '⏸' : '▶'}</button>
         <button onClick={nextStep} className="w-10 h-10 flex items-center justify-center bg-gray-900 border border-blue-500/30 text-blue-400 rounded-lg">⏭</button>
         <button onClick={fastForward} className="w-10 h-10 flex items-center justify-center bg-gray-900 border border-red-500/30 text-red-400 rounded-lg">⏩</button>

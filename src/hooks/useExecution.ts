@@ -33,17 +33,16 @@ export function useExecution() {
   useEffect(() => {
     if (!store.isPlaying) return
     const interval = setInterval(() => {
-      store.setCurrentStep((prevStep) => {
-        const nextStep = prevStep + 1
-        if (nextStep >= store.totalSteps) {
-          store.setIsPlaying(false)
-          return prevStep
-        }
-        return nextStep
-      })
+      const next = store.currentStep + 1
+      if (next >= store.totalSteps) {
+        store.setIsPlaying(false)
+        store.setCurrentStep(store.totalSteps - 1)
+      } else {
+        store.setCurrentStep(next)
+      }
     }, 1000 / store.executionSpeed)
     return () => clearInterval(interval)
-  }, [store.isPlaying, store.executionSpeed, store.totalSteps, store])
+  }, [store.isPlaying, store.executionSpeed, store.totalSteps, store.currentStep, store])
 
   return { ...store, nextStep, previousStep, restart, togglePlay, fastForward }
 }

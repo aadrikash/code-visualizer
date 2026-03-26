@@ -19,8 +19,8 @@ interface ExecutionStore extends ExecutionState {
 }
 
 const initialState: ExecutionState = {
-  code: `# Welcome to Code Visualizer\n# Write your code here\n\nn = 5\ntotal = 0\n\nfor i in range(1, n + 1):\n    total = total + i\n\nprint(f"Sum: {total}")`,
-  language: 'python',
+  code: `// Welcome to Code Visualizer\n// Click "Execute" to run this code step by step\n\nlet n = 5;\nlet total = 0;\n\nfor (let i = 1; i <= n; i++) {\n  total = total + i;\n}\n\nconsole.log("Sum:", total);`,
+  language: 'javascript',
   currentStep: 0,
   totalSteps: 0,
   isPlaying: false,

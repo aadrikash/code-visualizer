@@ -1,18 +1,20 @@
 import { useState } from 'react'
 import { useExecutionStore } from '../stores/executionStore'
 import { useTheme } from '../hooks/useTheme'
+import { useCodeExecution } from '../hooks/useCodeExecution'
 import { CODE_EXAMPLES } from '../examples/codeExamples'
 
 export default function Toolbar() {
   const { language, setLanguage, setCode } = useExecutionStore()
   const { theme, changeTheme } = useTheme()
+  const { executeCode, resetExecution } = useCodeExecution()
   const [selectedExample, setSelectedExample] = useState('')
 
   const handleExampleLoad = (exampleKey: string) => {
     if (exampleKey && CODE_EXAMPLES[exampleKey as keyof typeof CODE_EXAMPLES]) {
       const example = CODE_EXAMPLES[exampleKey as keyof typeof CODE_EXAMPLES]
-      const code = example[language as keyof typeof example] || example.python
-      setCode(code)
+      const code = example[language as keyof typeof example] ?? example.javascript
+      setCode(code as string)
       setSelectedExample(exampleKey)
     }
   }
@@ -49,6 +51,7 @@ export default function Toolbar() {
           <span className="text-xs font-semibold text-gray-400 uppercase">Example</span>
           <select value={selectedExample} onChange={(e) => handleExampleLoad(e.target.value)} className="bg-gray-900 border border-cyan-500/30 rounded px-3 py-1.5 text-sm text-cyan-400">
             <option value="">-- Load Example --</option>
+            <option value="sum-loop">Sum Loop</option>
             <option value="bubble-sort">Bubble Sort</option>
             <option value="binary-search">Binary Search</option>
             <option value="fibonacci">Fibonacci</option>
@@ -57,9 +60,9 @@ export default function Toolbar() {
         </label>
       </div>
       <div className="flex gap-2">
+        <button onClick={executeCode} className="px-4 py-2 bg-gradient-to-r from-green-500 to-cyan-500 text-black font-bold rounded-lg hover:opacity-90 active:scale-95 transition-all">▶ Execute</button>
         <button onClick={shareCode} className="px-4 py-2 bg-gradient-to-r from-cyan-500 to-green-500 text-black font-semibold rounded-lg">📤 Share</button>
-        <button className="px-4 py-2 bg-gradient-to-r from-cyan-500 to-green-500 text-black font-semibold rounded-lg">📸 Export</button>
-        <button className="px-4 py-2 bg-gradient-to-r from-cyan-500 to-green-500 text-black font-semibold rounded-lg">🔄 Reset</button>
+        <button onClick={resetExecution} className="px-4 py-2 bg-gradient-to-r from-cyan-500 to-green-500 text-black font-semibold rounded-lg">🔄 Reset</button>
       </div>
     </div>
   )
