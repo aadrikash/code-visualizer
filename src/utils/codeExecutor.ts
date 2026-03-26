@@ -1,5 +1,8 @@
 import type { ExecutionSnapshot, Variable, CallStackFrame } from '../types/execution'
 
+// Safe identifier pattern – only allow valid JS identifiers as variable names
+const SAFE_IDENTIFIER = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/
+
 // ─── helpers ──────────────────────────────────────────────────────────────────
 
 function getType(value: unknown): string {
@@ -10,8 +13,17 @@ function getType(value: unknown): string {
   return typeof value
 }
 
+function formatArgs(args: unknown[]): string {
+  return args.map(a => (typeof a === 'object' ? stringify(a) : String(a))).join(' ')
+}
+
 function stringify(value: unknown): string {
-  if (typeof value === 'function') return value.toString().split('{')[0].trim()
+  if (typeof value === 'function') {
+    const src = value.toString()
+    // Arrow functions may not contain '{'; show the whole signature up to the body start
+    const braceIdx = src.indexOf('{')
+    return braceIdx !== -1 ? src.slice(0, braceIdx).trim() : src.slice(0, 60).trim()
+  }
   try {
     return JSON.stringify(value)
   } catch {
@@ -68,7 +80,10 @@ function extractVariableNames(code: string): string[] {
   ]
   for (const re of patterns) {
     let m: RegExpExecArray | null
-    while ((m = re.exec(code)) !== null) names.add(m[1])
+    while ((m = re.exec(code)) !== null) {
+      // Only include valid, safe identifier names to prevent injection
+      if (SAFE_IDENTIFIER.test(m[1])) names.add(m[1])
+    }
   }
   return Array.from(names)
 }
@@ -77,6 +92,7 @@ function extractVariableNames(code: string): string[] {
 
 function instrumentCode(code: string, varNames: string[]): string {
   const lines = code.split('\n')
+  // varNames are already validated as safe identifiers by extractVariableNames
   const captureExpr = `{${varNames.map(n => `"${n}": (typeof ${n} !== 'undefined' ? ${n} : undefined)`).join(', ')}}`
 
   const out: string[] = []
@@ -90,7 +106,8 @@ function instrumentCode(code: string, varNames: string[]): string {
     }
 
     out.push(raw)
-    out.push(`try { __captureState__(${i}, ${captureExpr}); } catch(_e) {}`)
+    // Instrumentation errors are intentionally swallowed so they never interrupt user code
+    out.push(`try { __captureState__(${i}, ${captureExpr}); } catch(_instrumentErr) { /* instrumentation */ }`)
   }
 
   return out.join('\n')
@@ -154,20 +171,14 @@ export function executeJavaScript(code: string): ExecutionResult {
   }
 
   const mockConsole = {
-    log: (...args: unknown[]) => {
-      capturedOutput.push(args.map(a => (typeof a === 'object' ? stringify(a) : String(a))).join(' '))
-    },
+    log: (...args: unknown[]) => { capturedOutput.push(formatArgs(args)) },
     error: (...args: unknown[]) => {
-      const msg = args.map(a => String(a)).join(' ')
+      const msg = formatArgs(args)
       errors.push(msg)
       capturedOutput.push(`[error] ${msg}`)
     },
-    warn: (...args: unknown[]) => {
-      capturedOutput.push('[warn] ' + args.map(a => String(a)).join(' '))
-    },
-    info: (...args: unknown[]) => {
-      capturedOutput.push(args.map(a => (typeof a === 'object' ? stringify(a) : String(a))).join(' '))
-    },
+    warn: (...args: unknown[]) => { capturedOutput.push('[warn] ' + formatArgs(args)) },
+    info: (...args: unknown[]) => { capturedOutput.push(formatArgs(args)) },
   }
 
   const instrumented = instrumentCode(code, varNames)
@@ -192,3 +203,4 @@ export function executeJavaScript(code: string): ExecutionResult {
 
   return { snapshots, errors }
 }
+
